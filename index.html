@@ -1,103 +1,283 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Game UI</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Round & AP Circle UI</title>
 <style>
-  body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    background: #1e1e1e;
+  :root{
+    --bg-color: #000000;
+    --circle-color-1: #3a3a3a;
+    --circle-color-2: #2b2b2b;
+    --circle-stroke: #666666;
+    --orb-gold-1: #e5b54a;
+    --orb-gold-2: #ffdd7a;
+    --orb-size: 60px;         /* big orb size — change here */
+    --circle-size: 280px;     /* circle diameter — change here */
+    --max-ap: 9;
+    --font-family: "Inter", system-ui, -apple-system, "Helvetica Neue", Arial;
   }
 
-  .ui-container {
+  html,body{
+    height:100%;
+    margin:0;
+    background:var(--bg-color);
+    font-family: var(--font-family);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  /* HUD container */
+  .hud {
     position: relative;
-    width: 300px;
-    height: 300px;
-  }
-
-  .main-circle {
-    position: absolute;
-    width: 200px;
-    height: 200px;
-    border: 6px solid gray;
-    border-radius: 50%;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    width: calc(var(--circle-size) + var(--orb-size) * 1.6);
+    height: calc(var(--circle-size) + var(--orb-size) * 1.6);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-family: sans-serif;
   }
 
-  .round-label {
-    font-size: 20px;
-    margin: 0;
-    padding: 0;
+  /* Main circle */
+  .round-circle {
+    position: absolute;
+    width: var(--circle-size);
+    height: var(--circle-size);
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.04), transparent 15%),
+                linear-gradient(180deg, var(--circle-color-1), var(--circle-color-2));
+    box-shadow:
+      0 8px 30px rgba(0,0,0,0.9),
+      inset 0 2px 10px rgba(255,255,255,0.02);
+    border: 3px solid var(--circle-stroke);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:1;
+  }
+
+  /* inner plate for contrast & bevel */
+  .circle-inner {
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: inset 0 -12px 30px rgba(0,0,0,0.6);
+    position: relative;
+  }
+
+  /* center text column */
+  .center-text {
+    text-align:center;
+    color: #ffffff;
+    user-select: none;
+    line-height: 1;
+  }
+
+  .label {
+    font-size: 14px;
+    letter-spacing: 1px;
+    opacity: 0.85;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
   }
 
   .round-number {
-    font-size: 36px;
-    font-weight: bold;
-    margin: 0;
-    padding: 0;
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 0.92;
+    margin-top: -4px; /* almost no margin left as requested */
+    color: #fff;
+    text-shadow:
+      0 8px 28px rgba(0,0,0,0.8),
+      0 1px 0 rgba(255,255,255,0.02);
   }
 
-  .ap-orb {
+  /* Orb wrapper holds absolute-positioned orbs */
+  .orbs-layer {
     position: absolute;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    background: gold;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    transition: box-shadow 0.3s;
+    width: var(--circle-size);
+    height: var(--circle-size);
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    z-index:2;
   }
 
-  .ap-orb.inactive {
-    box-shadow: none;
-    opacity: 0.4;
+  .orb {
+    position: absolute;
+    width: var(--orb-size);
+    height: var(--orb-size);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:
+      0 8px 30px rgba(0,0,0,0.8),
+      inset 0 -6px 18px rgba(0,0,0,0.45);
+    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.5), rgba(255,255,255,0.06) 8%, transparent 10%),
+                linear-gradient(180deg, var(--orb-gold-2), var(--orb-gold-1));
+    border: 2px solid rgba(255,255,255,0.08);
+    transition: filter 300ms ease, transform 220ms cubic-bezier(.2,.9,.3,1);
+    will-change: transform, filter;
+  }
+
+  /* active orb: glow + slight scale */
+  .orb.active {
+    filter: drop-shadow(0 0 18px rgba(255,200,80,0.55))
+            drop-shadow(0 0 34px rgba(255,180,50,0.18));
+    transform: translate(-50%, -50%) scale(1.08);
+    z-index:4;
+  }
+
+  /* inactive orb: desaturated, matte */
+  .orb.inactive {
+    filter: grayscale(20%) brightness(0.85) saturate(0.9);
+    opacity: 0.88;
+  }
+
+  /* inner glossy highlight to make AAA look */
+  .orb::after {
+    content: "";
+    position: absolute;
+    left: 8%;
+    top: 6%;
+    width: 56%;
+    height: 44%;
+    border-radius: 40%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.06));
+    mix-blend-mode: screen;
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  /* optional small index, hidden by default for clarity */
+  .orb .index {
+    font-size: 12px;
+    color: rgba(0,0,0,0.55);
+    font-weight:700;
+    display:none;
+  }
+
+  /* responsive scaling for smaller screens */
+  @media (max-width:520px){
+    :root{
+      --circle-size: 210px;
+      --orb-size: 46px;
+    }
+    .round-number { font-size:46px; }
   }
 </style>
 </head>
 <body>
+  <div class="hud" aria-hidden="false">
+    <div class="round-circle" role="img" aria-label="round display">
+      <div class="circle-inner">
+        <div class="center-text">
+          <div class="label">Round</div>
+          <div class="round-number" id="round_number_text">59</div>
+        </div>
+      </div>
+    </div>
 
-<div class="ui-container">
-  <div class="main-circle">
-    <div class="round-label">Round</div>
-    <div class="round-number" id="round-number">59</div>
+    <div class="orbs-layer" id="orbs_layer" aria-hidden="false">
+      <!-- JS will generate orbs here -->
+    </div>
   </div>
-</div>
 
 <script>
-  const container = document.querySelector('.ui-container');
-  const centerX = 150;
-  const centerY = 150;
-  const radius = 100; // orbit radius so orbs' centers align with circle's circumference
-  const max_ap = 9;
-  const current_ap = 3; // change this to test glow effect
+/*
+  Config variables — change here for different rounds / AP.
+  Naming uses snake_case per user preference.
+*/
+const round_number = 59;
+const max_ap = 9;
+const ap_available = 3;   // first N orbs will be active/glowing
+const circle_size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--circle-size')) || 280;
+const orb_size = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--orb-size')) || 60;
 
-  for (let i = 0; i < max_ap; i++) {
-    const angle = (i / max_ap) * 2 * Math.PI - Math.PI / 2; // start top
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
+/* set round number text */
+document.getElementById('round_number_text').textContent = String(round_number);
 
+/* generate orbs and position them so their centers lie exactly on the circle circumference */
+(function create_orbs(){
+  const orbs_layer = document.getElementById('orbs_layer');
+  orbs_layer.innerHTML = ''; // start clean
+
+  // radius: distance from center to orb centers — must equal circle radius
+  const radius = circle_size / 2;
+
+  // center in parent coordinates (orbs_layer is same size and centered)
+  const layer_rect = { width: circle_size, height: circle_size };
+  const center_x = layer_rect.width / 2;
+  const center_y = layer_rect.height / 2;
+
+  for(let i = 0; i < max_ap; i++){
     const orb = document.createElement('div');
-    orb.classList.add('ap-orb');
-    if (i >= current_ap) orb.classList.add('inactive');
+    orb.className = 'orb ' + (i < ap_available ? 'active' : 'inactive');
+    orb.setAttribute('data-index', String(i+1));
+    // angle distribution: start at -90deg (top) and go clockwise
+    const angle_deg = -90 + (360 / max_ap) * i;
+    const angle_rad = angle_deg * Math.PI / 180;
 
-    orb.style.left = (x - 13) + 'px'; // center orb (26px wide)
-    orb.style.top = (y - 13) + 'px';
+    // compute center position on circumference
+    const cx = center_x + radius * Math.cos(angle_rad);
+    const cy = center_y + radius * Math.sin(angle_rad);
 
-    container.appendChild(orb);
+    // set absolute position (the orbs_layer is placed with transform translate to center)
+    // use left/top relative to orbs_layer (which is equal to circle_size)
+    orb.style.left = cx + 'px';
+    orb.style.top  = cy + 'px';
+
+    // optional small index label (hidden by default)
+    const idx_span = document.createElement('span');
+    idx_span.className = 'index';
+    idx_span.textContent = String(i+1);
+    orb.appendChild(idx_span);
+
+    // slight rotation/tilt for visual variety on active ones
+    if(i < ap_available){
+      orb.style.transform += ' rotate(' + ((Math.random()-0.5)*8) + 'deg)';
+    }
+
+    orbs_layer.appendChild(orb);
   }
-</script>
+})();
 
+/* Helpful: expose a small function to update AP dynamically (not required) */
+window.set_ap = function(new_ap){
+  const orbs = document.querySelectorAll('.orb');
+  for(let i = 0; i < orbs.length; i++){
+    orbs[i].classList.toggle('active', i < new_ap);
+    orbs[i].classList.toggle('inactive', i >= new_ap);
+  }
+};
+
+/* Optional demo animation: pulse available AP on load for AAA feel */
+(function demo_pulse(){
+  const active_orbs = document.querySelectorAll('.orb.active');
+  active_orbs.forEach((o, idx) => {
+    const delay = idx * 120;
+    o.animate([
+      { transform: getComputedStyle(o).transform + ' scale(1.00)' },
+      { transform: getComputedStyle(o).transform + ' scale(1.12)' },
+      { transform: getComputedStyle(o).transform + ' scale(1.00)' }
+    ], {
+      duration: 900,
+      delay: delay,
+      iterations: 1,
+      easing: 'cubic-bezier(.2,.9,.3,1)'
+    });
+  });
+})();
+</script>
 </body>
 </html>
