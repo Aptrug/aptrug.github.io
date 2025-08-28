@@ -1,98 +1,170 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Round & AP UI</title>
-<style>
-  body {
-    margin: 0;
-    background: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Round & AP UI — Single-file</title>
+  <style>
+    /* -----------------------------------------------
+       AAA-quality round+AP UI (single-file)
+       - snake_case class/variable names
+       - change runtime defaults at top of the <script>
+       -----------------------------------------------*/
 
-  .hud {
-    position: relative;
-    width: 300px;
-    height: 300px;
-  }
+    :root{
+      --bg-color: #000;
+      --circle-size: 260px; /* diameter of center circle */
+      --orb-size: 60px;     /* diameter of each AP orb (big!) */
+      --ui-scale: 1;        /* multiply to scale whole widget */
+    }
 
-  .circle {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 200px;
-    height: 200px;
-    margin-left: -100px;
-    margin-top: -100px;
-    border-radius: 50%;
-    border: 3px solid gray;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    flex-direction: column;
-    font-family: sans-serif;
-  }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 600px at 70% 20%, rgba(255,215,120,0.02), transparent),
+                  radial-gradient(900px 400px at 20% 80%, rgba(255,255,255,0.02), transparent),
+                  var(--bg-color);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:24px;
+    }
 
-  .circle .label {
-    font-size: 16px;
-  }
+    /* Outer widget container sized to allow orb overflow without clipping */
+    .ui_container{
+      --container_size: calc(var(--circle-size) + 2 * var(--orb-size));
+      width: calc(var(--container_size) * var(--ui-scale));
+      height: calc(var(--container_size) * var(--ui-scale));
+      position:relative;
+      display:inline-block;
+      user-select:none;
+      -webkit-user-select:none;
+    }
 
-  .circle .round {
-    font-size: 40px;
-    margin-top: 5px;
-  }
+    /* central circle */
+    .ui_circle{
+      width: calc(var(--circle-size) * var(--ui-scale));
+      height: calc(var(--circle-size) * var(--ui-scale));
+      border-radius:50%;
+      position:absolute;
+      left:50%; top:50%;
+      transform: translate(-50%,-50%);
 
-  .orb {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background: gold;
-    transform: translate(-50%, -50%);
-  }
+      /* AAA visual: metallic rim, soft inner glow, etched surface */
+      background: linear-gradient(180deg, #4b4b4b 0%, #2a2a2a 55%, #1f1f1f 100%);
+      box-shadow:
+        inset 0 18px 30px rgba(255,255,255,0.03),
+        inset 0 -18px 36px rgba(0,0,0,0.6),
+        0 18px 60px rgba(0,0,0,0.7);
+      border: 3px solid rgba(255,255,255,0.03);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      z-index:10; /* keep on top of subtle background elements */
+      overflow:visible;
+    }
 
-  .orb.inactive {
-    opacity: 0.3;
-  }
+    /* decorative outer rim (thin metallic ring) */
+    .ui_circle::before{
+      content:"";
+      position:absolute;
+      inset: -8px; /* ring outside the main circle */
+      border-radius:50%;
+      background: conic-gradient(from 120deg, rgba(255,255,255,0.02), rgba(0,0,0,0.05));
+      filter: blur(6px);
+      z-index:-2;
+      pointer-events:none;
+    }
 
-  .orb.active {
-    box-shadow: 0 0 10px gold;
-  }
-</style>
-</head>
-<body>
-<div class="hud">
-  <div class="circle">
-    <div class="label">Round</div>
-    <div class="round" id="round-number">59</div>
-  </div>
-</div>
+    /* subtle engraved text area */
+    .round_label{
+      font-size:14px;
+      letter-spacing:1px;
+      opacity:0.9;
+      margin:0;
+      padding:0;
+      transform: translateY(-8%);
+      color: #e7e7e7;
+    }
 
-<script>
-  const round_number = 59;
-  const max_ap = 9;
-  const ap_available = 3;
-  const circle_radius = 100; // same as half the circle size above
+    .round_number{
+      font-weight:800;
+      font-size:72px;
+      line-height:0.9;
+      margin-top:4px; /* almost no margin */
+      margin-bottom:0;
+      letter-spacing:-1px;
+      color: #f6f6f6;
+      text-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.03) inset;
+    }
 
-  document.getElementById('round-number').textContent = round_number;
+    /* container for the orbs (absolute full-size) */
+    .orbs_layer{
+      position:absolute;
+      left:0; top:0; right:0; bottom:0;
+      pointer-events:none; /* decorative only by default */
+      z-index:5;
+    }
 
-  const hud = document.querySelector('.hud');
-  for (let i = 0; i < max_ap; i++) {
-    const angle = (2 * Math.PI / max_ap) * i - Math.PI / 2; // start at top
-    const x = 150 + circle_radius * Math.cos(angle);
-    const y = 150 + circle_radius * Math.sin(angle);
+    /* each AP orb */
+    .ap_orb{
+      --size: calc(var(--orb-size) * var(--ui-scale));
+      position:absolute;
+      width: var(--size);
+      height: var(--size);
+      border-radius:50%;
+      transform: translate(0,0);
+      transition: box-shadow 300ms cubic-bezier(.2,.9,.2,1), transform 300ms ease, filter 300ms ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      pointer-events:auto;
 
-    const orb = document.createElement('div');
-    orb.className = 'orb ' + (i < ap_available ? 'active' : 'inactive');
-    orb.style.left = x + 'px';
-    orb.style.top = y + 'px';
+      /* gold-metal gradient */
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.3) 6%, #ffd36b 25%, #d49b12 55%, #6d4b00 100%);
+      border: 2px solid rgba(255,255,255,0.12);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6), inset 0 2px 10px rgba(255,255,255,0.08);
+      cursor:default;
+    }
 
-    hud.appendChild(orb);
-  }
-</script>
-</body>
-</html>
+    /* glossy sheen using pseudo-element */
+    .ap_orb::after{
+      content:"";
+      position:absolute;
+      left:8%; top:6%;
+      width:60%; height:48%;
+      border-radius:50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.05));
+      transform: rotate(-12deg);
+      opacity:0.9;
+      pointer-events:none;
+      mix-blend-mode:screen;
+    }
+
+    /* available (glowing) */
+    .ap_orb.available{
+      box-shadow:
+        0 8px 30px rgba(212,160,23,0.25),
+        0 0 18px rgba(212,160,23,0.22),
+        0 0 8px rgba(255,235,170,0.12) inset,
+        0 10px 40px rgba(0,0,0,0.6);
+      transform: translateY(-6%) scale(1.03);
+      filter: saturate(1.05);
+      animation: ap_pulse 2000ms infinite;
+    }
+
+    @keyframes ap_pulse{
+      0%{ box-shadow: 0 8px 30px rgba(212,160,23,0.14), 0 0 8px rgba(212,160,23,0.12);}
+      50%{ box-shadow: 0 10px 40px rgba(212,160,23,0.28), 0 0 18px rgba(212,160,23,0.20);}
+      100%{ box-shadow: 0 8px 30px rgba(212,160,23,0.14), 0 0 8px rgba(212,160,23,0.12);}
+    }
+
+    /* unavailable (dimmed) */
+    .ap_orb.unavailable{
+      filter: grayscale(40%) contrast(0.95) opacity(0.78);
+      box-shadow: 0 6px 16px rgba(
