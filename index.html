@@ -1,170 +1,176 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Round & AP UI — Single-file</title>
-  <style>
-    /* -----------------------------------------------
-       AAA-quality round+AP UI (single-file)
-       - snake_case class/variable names
-       - change runtime defaults at top of the <script>
-       -----------------------------------------------*/
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game UI: Rounds & AP</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* General body styling */
+        body {
+            background-color: #0A0A0A; /* Darker black background */
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars */
+            color: #E0E0E0; /* Light gray text for contrast */
+        }
 
-    :root{
-      --bg-color: #000;
-      --circle-size: 260px; /* diameter of center circle */
-      --orb-size: 60px;     /* diameter of each AP orb (big!) */
-      --ui-scale: 1;        /* multiply to scale whole widget */
-    }
+        /* Keyframes for the orb glow animation */
+        @keyframes orb-glow {
+            0% { box-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700; }
+            50% { box-shadow: 0 0 15px #FFD700, 0 0 30px #FFD700, 0 0 45px rgba(255, 215, 0, 0.5); }
+            100% { box-shadow: 0 0 5px #FFD700, 0 0 10px #FFD700; }
+        }
 
-    html,body{height:100%;}
-    body{
-      margin:0;
-      background: radial-gradient(1200px 600px at 70% 20%, rgba(255,215,120,0.02), transparent),
-                  radial-gradient(900px 400px at 20% 80%, rgba(255,255,255,0.02), transparent),
-                  var(--bg-color);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:#fff;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding:24px;
-    }
+        /* Container for the entire UI to control size and positioning */
+        #ui-container {
+            position: relative;
+            width: 450px; /* Overall width of the UI area */
+            height: 450px; /* Overall height of the UI area */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Added a subtle background for the entire UI area */
+            background: linear-gradient(145deg, rgba(30,30,30,0.8), rgba(15,15,15,0.8));
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.1);
+        }
 
-    /* Outer widget container sized to allow orb overflow without clipping */
-    .ui_container{
-      --container_size: calc(var(--circle-size) + 2 * var(--orb-size));
-      width: calc(var(--container_size) * var(--ui-scale));
-      height: calc(var(--container_size) * var(--ui-scale));
-      position:relative;
-      display:inline-block;
-      user-select:none;
-      -webkit-user-select:none;
-    }
+        /* Central circle for Round display */
+        #ap-circle {
+            width: 220px; /* Diameter of the central circle */
+            height: 220px;
+            background: linear-gradient(145deg, #606060, #303030); /* Gradient for a polished look */
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: absolute; /* Position relative to ui-container */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.1);
+            border: 2px solid rgba(200,200,200,0.3); /* Subtle border */
+        }
 
-    /* central circle */
-    .ui_circle{
-      width: calc(var(--circle-size) * var(--ui-scale));
-      height: calc(var(--circle-size) * var(--ui-scale));
-      border-radius:50%;
-      position:absolute;
-      left:50%; top:50%;
-      transform: translate(-50%,-50%);
+        .round-label {
+            font-size: 1.5rem; /* Larger font for "Round" */
+            font-weight: 400;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            margin-bottom: -0.5rem; /* Reduce space between label and number */
+            color: #C0C0C0; /* Lighter gray */
+        }
 
-      /* AAA visual: metallic rim, soft inner glow, etched surface */
-      background: linear-gradient(180deg, #4b4b4b 0%, #2a2a2a 55%, #1f1f1f 100%);
-      box-shadow:
-        inset 0 18px 30px rgba(255,255,255,0.03),
-        inset 0 -18px 36px rgba(0,0,0,0.6),
-        0 18px 60px rgba(0,0,0,0.7);
-      border: 3px solid rgba(255,255,255,0.03);
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      z-index:10; /* keep on top of subtle background elements */
-      overflow:visible;
-    }
+        #round-number {
+            font-size: 4.5rem; /* Very big font for the round number */
+            font-weight: 700;
+            line-height: 1; /* Ensure no extra line height */
+            text-shadow: 0 0 10px rgba(0,0,0,0.7), 0 0 20px rgba(255,255,255,0.2);
+            margin-top: 0; /* Align perfectly */
+            color: #F8F8F8; /* Almost white */
+        }
 
-    /* decorative outer rim (thin metallic ring) */
-    .ui_circle::before{
-      content:"";
-      position:absolute;
-      inset: -8px; /* ring outside the main circle */
-      border-radius:50%;
-      background: conic-gradient(from 120deg, rgba(255,255,255,0.02), rgba(0,0,0,0.05));
-      filter: blur(6px);
-      z-index:-2;
-      pointer-events:none;
-    }
+        /* Styling for the AP orbs */
+        .ap-orb {
+            width: 60px; /* Diameter of the AP orbs */
+            height: 60px;
+            background: linear-gradient(145deg, #FFD700, #DAA520); /* Golden gradient */
+            border-radius: 50%;
+            position: absolute; /* Position relative to ui-container */
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3), inset 0 0 5px rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.2); /* Subtle highlight */
+            transition: all 0.3s ease-in-out; /* Smooth transitions for glow */
+        }
 
-    /* subtle engraved text area */
-    .round_label{
-      font-size:14px;
-      letter-spacing:1px;
-      opacity:0.9;
-      margin:0;
-      padding:0;
-      transform: translateY(-8%);
-      color: #e7e7e7;
-    }
+        /* Glow effect for available AP orbs */
+        .ap-orb.glow {
+            animation: orb-glow 2s infinite alternate ease-in-out; /* Pulsating glow */
+            border-color: #FFEA00; /* Brighter border when glowing */
+        }
+    </style>
+</head>
+<body>
 
-    .round_number{
-      font-weight:800;
-      font-size:72px;
-      line-height:0.9;
-      margin-top:4px; /* almost no margin */
-      margin-bottom:0;
-      letter-spacing:-1px;
-      color: #f6f6f6;
-      text-shadow: 0 6px 18px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.03) inset;
-    }
+    <div id="ui-container" class="rounded-xl p-8">
+        <!-- Central Round display circle -->
+        <div id="ap-circle">
+            <div class="round-label">Round</div>
+            <div id="round-number">1</div>
+        </div>
 
-    /* container for the orbs (absolute full-size) */
-    .orbs_layer{
-      position:absolute;
-      left:0; top:0; right:0; bottom:0;
-      pointer-events:none; /* decorative only by default */
-      z-index:5;
-    }
+        <!-- AP Orbs (will be dynamically positioned by JS) -->
+        <!-- Using a loop to create 9 orbs -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const uiContainer = document.getElementById('ui-container');
+                const apCircle = document.getElementById('ap-circle');
+                const roundNumberDiv = document.getElementById('round-number');
 
-    /* each AP orb */
-    .ap_orb{
-      --size: calc(var(--orb-size) * var(--ui-scale));
-      position:absolute;
-      width: var(--size);
-      height: var(--size);
-      border-radius:50%;
-      transform: translate(0,0);
-      transition: box-shadow 300ms cubic-bezier(.2,.9,.2,1), transform 300ms ease, filter 300ms ease;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      pointer-events:auto;
+                const numOrbs = 9;
+                const orbSize = 60; // Diameter of an orb in pixels
+                const apCircleDiameter = apCircle.offsetWidth; // Diameter of the central circle
+                const apCircleRadius = apCircleDiameter / 2; // Radius of the central circle
 
-      /* gold-metal gradient */
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.3) 6%, #ffd36b 25%, #d49b12 55%, #6d4b00 100%);
-      border: 2px solid rgba(255,255,255,0.12);
-      box-shadow: 0 6px 14px rgba(0,0,0,0.6), inset 0 2px 10px rgba(255,255,255,0.08);
-      cursor:default;
-    }
+                // The radius on which the *centers* of the orbs will sit.
+                // This is (central circle radius) + (half of orb size)
+                const orbPlacementRadius = apCircleRadius + (orbSize / 2);
 
-    /* glossy sheen using pseudo-element */
-    .ap_orb::after{
-      content:"";
-      position:absolute;
-      left:8%; top:6%;
-      width:60%; height:48%;
-      border-radius:50%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.05));
-      transform: rotate(-12deg);
-      opacity:0.9;
-      pointer-events:none;
-      mix-blend-mode:screen;
-    }
+                const uiContainerCenter = uiContainer.offsetWidth / 2; // Center of the UI container
 
-    /* available (glowing) */
-    .ap_orb.available{
-      box-shadow:
-        0 8px 30px rgba(212,160,23,0.25),
-        0 0 18px rgba(212,160,23,0.22),
-        0 0 8px rgba(255,235,170,0.12) inset,
-        0 10px 40px rgba(0,0,0,0.6);
-      transform: translateY(-6%) scale(1.03);
-      filter: saturate(1.05);
-      animation: ap_pulse 2000ms infinite;
-    }
+                // Create and position the orbs
+                for (let i = 0; i < numOrbs; i++) {
+                    const orb = document.createElement('div');
+                    orb.classList.add('ap-orb');
+                    orb.id = `ap-orb-${i}`;
+                    uiContainer.appendChild(orb);
 
-    @keyframes ap_pulse{
-      0%{ box-shadow: 0 8px 30px rgba(212,160,23,0.14), 0 0 8px rgba(212,160,23,0.12);}
-      50%{ box-shadow: 0 10px 40px rgba(212,160,23,0.28), 0 0 18px rgba(212,160,23,0.20);}
-      100%{ box-shadow: 0 8px 30px rgba(212,160,23,0.14), 0 0 8px rgba(212,160,23,0.12);}
-    }
+                    // Calculate angle for each orb (starting from top, clockwise)
+                    // We offset by -Math.PI / 2 to start at the top (0 degrees in SVG, -90 in Cartesian)
+                    const angle = (i / numOrbs) * 2 * Math.PI - (Math.PI / 2);
 
-    /* unavailable (dimmed) */
-    .ap_orb.unavailable{
-      filter: grayscale(40%) contrast(0.95) opacity(0.78);
-      box-shadow: 0 6px 16px rgba(
+                    // Calculate the center coordinates of the orb relative to ui-container's center
+                    const xCenterOrb = uiContainerCenter + orbPlacementRadius * Math.cos(angle);
+                    const yCenterOrb = uiContainerCenter + orbPlacementRadius * Math.sin(angle);
+
+                    // Set the orb's top-left position (CSS `left` and `top`)
+                    orb.style.left = `${xCenterOrb - (orbSize / 2)}px`;
+                    orb.style.top = `${yCenterOrb - (orbSize / 2)}px`;
+                }
+
+                /**
+                 * Sets the current round number displayed in the central circle.
+                 * @param {number} roundNum The round number to display.
+                 */
+                window.setRound = (roundNum) => {
+                    roundNumberDiv.textContent = roundNum;
+                };
+
+                /**
+                 * Sets the number of available AP orbs, applying a glow effect.
+                 * @param {number} availableAP The number of AP orbs that should glow (max 9).
+                 */
+                window.setAP = (availableAP) => {
+                    const orbs = uiContainer.querySelectorAll('.ap-orb');
+                    orbs.forEach((orb, index) => {
+                        if (index < availableAP) {
+                            orb.classList.add('glow');
+                        } else {
+                            orb.classList.remove('glow');
+                        }
+                    });
+                };
+
+                // Initialize with some default values for testing
+                setRound(59); // Example: Start with Round 59
+                setAP(3);    // Example: 3 AP orbs glowing
+            });
+        </script>
+    </div>
+
+</body>
+</html>
