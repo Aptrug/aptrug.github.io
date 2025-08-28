@@ -1,105 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Game UI - Round & AP</title>
-  <style>
-    body {
-      background: #1e1e1e;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      font-family: sans-serif;
-      color: white;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game UI</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #1e1e1e;
+  }
 
-    .circle-container {
-      position: relative;
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: #333;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      box-shadow: 0 0 10px #000;
-    }
+  .ui-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+  }
 
-    .round-text {
-      position: absolute;
-      top: 40%;
-      transform: translateY(-50%);
-      font-size: 20px;
-      font-weight: bold;
-    }
+  .main-circle {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 6px solid gray;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: sans-serif;
+  }
 
-    .round-number {
-      position: absolute;
-      top: 60%;
-      transform: translateY(-50%);
-      font-size: 28px;
-      font-weight: bold;
-    }
+  .round-label {
+    font-size: 20px;
+    margin: 0;
+    padding: 0;
+  }
 
-    .ap-orb {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #555;
-      transition: box-shadow 0.3s, background 0.3s;
-    }
+  .round-number {
+    font-size: 36px;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+  }
 
-    .ap-orb.active {
-      background: #00ffcc;
-      box-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
-    }
-  </style>
+  .ap-orb {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: gold;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    transition: box-shadow 0.3s;
+  }
+
+  .ap-orb.inactive {
+    box-shadow: none;
+    opacity: 0.4;
+  }
+</style>
 </head>
 <body>
-  <div class="circle-container" id="mainCircle">
-    <div class="round-text">Round</div>
-    <div class="round-number" id="roundNumber">1</div>
+
+<div class="ui-container">
+  <div class="main-circle">
+    <div class="round-label">Round</div>
+    <div class="round-number" id="round-number">59</div>
   </div>
+</div>
 
-  <script>
-    const container = document.getElementById('mainCircle');
-    const totalOrbs = 9;
-    const radius = 110; // distance from center to orb center
+<script>
+  const container = document.querySelector('.ui-container');
+  const centerX = 150;
+  const centerY = 150;
+  const radius = 100; // orbit radius so orbs' centers align with circle's circumference
+  const max_ap = 9;
+  const current_ap = 3; // change this to test glow effect
 
-    // Create orbs around the circle
-    const orbs = [];
-    for (let i = 0; i < totalOrbs; i++) {
-      const orb = document.createElement('div');
-      orb.classList.add('ap-orb');
-      container.appendChild(orb);
+  for (let i = 0; i < max_ap; i++) {
+    const angle = (i / max_ap) * 2 * Math.PI - Math.PI / 2; // start top
+    const x = centerX + radius * Math.cos(angle);
+    const y = centerY + radius * Math.sin(angle);
 
-      const angle = (i / totalOrbs) * 2 * Math.PI;
-      const x = Math.cos(angle) * radius + container.clientWidth / 2 - 10;
-      const y = Math.sin(angle) * radius + container.clientHeight / 2 - 10;
-      orb.style.left = `${x}px`;
-      orb.style.top = `${y}px`;
+    const orb = document.createElement('div');
+    orb.classList.add('ap-orb');
+    if (i >= current_ap) orb.classList.add('inactive');
 
-      orbs.push(orb);
-    }
+    orb.style.left = (x - 13) + 'px'; // center orb (26px wide)
+    orb.style.top = (y - 13) + 'px';
 
-    // Function to set round number and AP
-    function updateUI(round, availableAP) {
-      document.getElementById('roundNumber').textContent = round;
-      orbs.forEach((orb, index) => {
-        if (index < availableAP) {
-          orb.classList.add('active');
-        } else {
-          orb.classList.remove('active');
-        }
-      });
-    }
+    container.appendChild(orb);
+  }
+</script>
 
-    // Example usage: Round 59 with 3 available AP
-    updateUI(59, 3);
-  </script>
 </body>
 </html>
