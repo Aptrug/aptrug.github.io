@@ -4,13 +4,15 @@
   <meta charset="UTF-8" />
   <title>Falchion HP Bars</title>
   <style>
+    * { box-sizing: border-box; }
+
     body {
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
-      background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
+      background: radial-gradient(circle, #0a0a0a, #000);
       font-family: 'Segoe UI', sans-serif;
       overflow: hidden;
     }
@@ -19,216 +21,131 @@
       display: flex;
       align-items: center;
       gap: 30px;
-      position: relative;
-      z-index: 10;
-      padding: 80px 0;
     }
 
-    /* VS Circle */
-    .vs-circle {
+    .vs {
       width: 80px; height: 80px;
       display: flex; justify-content: center; align-items: center;
-      font: 900 18px/1 'Segoe UI', sans-serif;
-      letter-spacing: 2px;
-      color: #000; border-radius: 50%; border: 4px solid #fff;
-      background: linear-gradient(45deg, #ffcc00 0%, #ff9900 50%, #ffcc00 100%);
-      box-shadow: 0 0 20px rgba(255,204,0,0.8), 0 8px 25px rgba(0,0,0,.7), inset 0 0 15px rgba(255,255,255,0.3);
-      animation: vsGlow 2s ease-in-out infinite alternate;
+      font: 900 18px 'Segoe UI'; letter-spacing: 2px; color: #000;
+      border-radius: 50%; border: 4px solid #fff;
+      background: linear-gradient(45deg, #fc0, #f90, #fc0);
+      box-shadow: 0 0 20px #fc08, 0 8px 25px #000a, inset 0 0 15px #fff5;
+      animation: glow 2s ease-in-out infinite alternate;
     }
 
-    @keyframes vsGlow {
-      0%   { box-shadow: 0 0 20px rgba(255,204,0,0.8), 0 8px 25px rgba(0,0,0,.7), inset 0 0 15px rgba(255,255,255,0.3); }
-      100% { box-shadow: 0 0 30px rgba(255,204,0,1),   0 8px 25px rgba(0,0,0,.7), inset 0 0 25px rgba(255,255,255,0.5); }
+    @keyframes glow {
+      to { box-shadow: 0 0 30px #fc0, 0 8px 25px #000a, inset 0 0 25px #fff8; }
     }
 
-    /* HP container styling */
-    .hp-bar-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .hp-container {
+    .hp {
       position: relative;
       width: 400px; height: 80px;
-      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-      border: 2px solid rgba(255,255,255,.15);
-      box-shadow: inset 0 0 20px rgba(0,0,0,.8), 0 4px 15px rgba(0,0,0,.6);
+      background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+      border: 2px solid #fff3;
+      box-shadow: inset 0 0 20px #000c, 0 4px 15px #0009;
       margin: 60px 0;
-    }
-
-    /* Falchion shapes */
-    .enemy .hp-container { clip-path: polygon(0 35%, 65% 35%, 75% 45%, 82% 60%, 88% 75%, 92% 85%, 96% 92%, 100% 95%, 98% 80%, 94% 65%, 88% 50%, 82% 35%, 75% 25%, 65% 18%, 0 18%); }
-    .hero .hp-container  { clip-path: polygon(100% 65%, 35% 65%, 25% 55%, 18% 40%, 12% 25%, 8% 15%, 4% 8%, 0% 5%, 2% 20%, 6% 35%, 12% 50%, 18% 65%, 25% 75%, 35% 82%, 100% 82%); }
-
-    /* HP fill */
-    .hp-fill {
-      position: absolute;
-      top: 0;
-      height: 100%;
-      transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       overflow: hidden;
     }
 
-    .enemy .hp-fill {
-      left: 0;
-      background: linear-gradient(90deg, #cc0000 0%, #ff4444 50%, #ff6666 100%);
+    .enemy .hp { clip-path: polygon(0 35%,65% 35%,75% 45%,82% 60%,88% 75%,92% 85%,96% 92%,100% 95%,98% 80%,94% 65%,88% 50%,82% 35%,75% 25%,65% 18%,0 18%); }
+    .hero .hp  { clip-path: polygon(100% 65%,35% 65%,25% 55%,18% 40%,12% 25%,8% 15%,4% 8%,0 5%,2% 20%,6% 35%,12% 50%,18% 65%,25% 75%,35% 82%,100% 82%); }
+
+    .fill {
+      position: absolute; top: 0; height: 100%;
+      transition: width .8s cubic-bezier(.25,.46,.45,.94);
     }
 
-    .hero .hp-fill  {
-      right: 0;
-      background: linear-gradient(90deg, #003399 0%, #4499ff 50%, #66aaff 100%);
-    }
+    .enemy .fill { left: 0; background: linear-gradient(90deg, #c00, #f44, #f66); }
+    .hero .fill  { right: 0; background: linear-gradient(90deg, #039, #49f, #6af); }
 
-    /* Wave effect */
     .wave {
+      position: absolute; top: 0; width: 180px; height: 100%;
+      background: linear-gradient(90deg, #fff0 0%, #fff1 15%, #fff5 30%, #fffb 45%, #fffe 50%, #fffb 55%, #fff5 70%, #fff1 85%, #fff0 100%);
+      opacity: 0; mix-blend-mode: screen;
+      animation: var(--anim) var(--dur, 3s) ease-in-out infinite;
+    }
+
+    .enemy .wave { --anim: waveR; }
+    .hero .wave  { --anim: waveL; }
+
+    @keyframes waveR { 0%{right:-180px;opacity:0} 10%,90%{opacity:1} 100%{right:400px;opacity:0} }
+    @keyframes waveL { 0%{left:-180px;opacity:0}  10%,90%{opacity:1} 100%{left:400px;opacity:0} }
+
+    .val {
       position: absolute;
-      top: 0;
-      width: 180px;
-      height: 100%;
-      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 15%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.3) 70%, rgba(255,255,255,0.1) 85%, rgba(255,255,255,0) 100%);
-      opacity: 0;
-      border-radius: 4px;
-      mix-blend-mode: screen;
-      pointer-events: none;
-      animation-duration: var(--wave-duration, 3s);
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
+      font: bold 18px 'Segoe UI'; width: 60px; text-align: center;
+      padding: 4px 12px; border-radius: 12px;
+      border: 1px solid #fff3; background: #0005;
+      color: #fff; text-shadow: 0 0 8px #000e;
+      backdrop-filter: blur(4px); letter-spacing: 1px;
     }
 
-    .enemy .wave { animation-name: wave-right-to-left; }
-    .hero .wave  { animation-name: wave-left-to-right; }
+    .enemy .val { bottom: 160px; left: 0; color: #f66; text-shadow: 0 0 8px #f66; }
+    .hero .val  { top: 160px; right: 0; color: #6af; text-shadow: 0 0 8px #6af; }
 
-    @keyframes wave-right-to-left { 0% { right: -180px; opacity: 0; } 10%,90% {opacity:1;} 100% { right: 400px; opacity: 0; } }
-    @keyframes wave-left-to-right  { 0% { left: -180px;  opacity: 0; } 10%,90% {opacity:1;} 100% { left: 400px; opacity: 0; } }
+    /* Health states */
+    .low     { animation: pulse 1.5s ease-in-out infinite alternate; }
+    .critical{ animation: flash .6s ease-in-out infinite alternate; }
+    .low .val{ animation: tpulse 1.2s ease-in-out infinite alternate; }
+    .critical .val{ animation: tflash .8s ease-in-out infinite alternate; }
 
-    /* HP text positioning and styling */
-    .hp-value {
-      position: absolute;
-      font: bold 18px 'Segoe UI', sans-serif;
-      width: 60px;
-      text-align: center;
-      padding: 4px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.3);
-      color: #fff;
-      text-shadow: 0 0 8px rgba(0,0,0,0.9);
-      backdrop-filter: blur(4px);
-      letter-spacing: 1px;
-    }
-
-    .enemy .hp-value {
-      bottom: 160px;
-      left: 0;
-      color: #ff6666;
-      text-shadow: 0 0 8px #ff6666;
-    }
-
-    .hero .hp-value  {
-      top: 160px;
-      right: 0;
-      color: #66aaff;
-      text-shadow: 0 0 8px #66aaff;
-    }
-
-    /* Health state animations */
-    .low-hp       { animation: lowHpPulse 1.5s ease-in-out infinite alternate; }
-    .critical-hp  { animation: criticalFlash 0.6s ease-in-out infinite alternate; }
-    .low-hp-text  { animation: lowHpTextPulse 1.2s ease-in-out infinite alternate; }
-    .critical-hp-text { animation: criticalHpTextFlash 0.8s ease-in-out infinite alternate; }
-
-    @keyframes lowHpPulse        { 0% { filter: brightness(1);} 100% {filter: brightness(1.4) drop-shadow(0 0 10px currentColor);} }
-    @keyframes criticalFlash     { 0% {opacity:0.8;} 100% {opacity:1; filter: drop-shadow(0 0 15px currentColor);} }
-    @keyframes lowHpTextPulse    { 0% {transform:scale(1);} 100% {transform:scale(1.05); text-shadow:0 0 15px currentColor;} }
-    @keyframes criticalHpTextFlash {0%{transform:scale(1);opacity:.9;}100%{transform:scale(1.1);opacity:1;text-shadow:0 0 20px currentColor;}}
+    @keyframes pulse  { to{filter:brightness(1.4) drop-shadow(0 0 10px currentColor)} }
+    @keyframes flash  { to{opacity:1;filter:drop-shadow(0 0 15px currentColor)} }
+    @keyframes tpulse { to{transform:scale(1.05);text-shadow:0 0 15px currentColor} }
+    @keyframes tflash { to{transform:scale(1.1);text-shadow:0 0 20px currentColor} }
   </style>
 </head>
 <body>
   <div class="battle-ui">
-    <!-- Enemy HP -->
     <div class="hp-bar-container enemy">
-      <div class="hp-value">75%</div>
-      <div class="hp-container">
-        <div class="hp-fill">
-          <div class="wave"></div>
-        </div>
-      </div>
+      <div class="val">75%</div>
+      <div class="hp"><div class="fill"><div class="wave"></div></div></div>
     </div>
 
-    <div class="vs-circle">VS</div>
+    <div class="vs">VS</div>
 
-    <!-- Hero HP -->
     <div class="hp-bar-container hero">
-      <div class="hp-container">
-        <div class="hp-fill">
-          <div class="wave"></div>
-        </div>
-      </div>
-      <div class="hp-value">50%</div>
+      <div class="hp"><div class="fill"><div class="wave"></div></div></div>
+      <div class="val">50%</div>
     </div>
   </div>
 
   <script>
-    const players = {
-      enemy: { hp: 0.75, element: null },
-      hero: { hp: 0.50, element: null }
-    };
+    const p = { enemy: .75, hero: .50 };
+    const els = {};
 
-    // Cache DOM elements
-    Object.keys(players).forEach(type => {
-      const container = document.querySelector(`.${type}`);
-      players[type].element = {
-        bar: container.querySelector('.hp-fill'),
-        value: container.querySelector('.hp-value')
-      };
+    ['enemy', 'hero'].forEach(t => {
+      const c = document.querySelector(`.${t}`);
+      els[t] = { bar: c.querySelector('.fill'), val: c.querySelector('.val'), container: c };
     });
 
-    function updateHpBars() {
-      Object.entries(players).forEach(([type, player]) => {
-        const { bar, value } = player.element;
-        const hpPercent = player.hp * 100;
+    function update() {
+      Object.entries(p).forEach(([t, hp]) => {
+        const e = els[t];
+        const pct = Math.round(hp * 100);
 
-        // Update HP display
-        bar.style.width = hpPercent + "%";
-        value.textContent = Math.round(hpPercent) + "%";
-        bar.style.setProperty('--wave-duration', Math.max(0.4, 3 * player.hp) + "s");
+        e.bar.style.width = pct + '%';
+        e.val.textContent = pct + '%';
+        e.bar.style.setProperty('--dur', Math.max(.4, 3 * hp) + 's');
 
-        // Clear and apply health state classes
-        const healthClasses = ['low-hp', 'critical-hp'];
-        const textClasses = ['low-hp-text', 'critical-hp-text'];
-
-        bar.classList.remove(...healthClasses);
-        value.classList.remove(...textClasses);
-
-        if (player.hp <= 0.15) {
-          bar.classList.add('critical-hp');
-          value.classList.add('critical-hp-text');
-        } else if (player.hp <= 0.3) {
-          bar.classList.add('low-hp');
-          value.classList.add('low-hp-text');
-        }
+        e.container.className = e.container.className.replace(/(low|critical)/g, '').trim() +
+          (hp <= .15 ? ' critical' : hp <= .3 ? ' low' : '');
       });
     }
 
     setInterval(() => {
-      // Random HP damage
-      Object.values(players).forEach(player => {
-        if (Math.random() > 0.5 && player.hp > 0) {
-          player.hp = Math.max(0, player.hp - (Math.random() * 0.05 + 0.02));
-        }
+      Object.keys(p).forEach(k => {
+        if (Math.random() > .5 && p[k] > 0) p[k] = Math.max(0, p[k] - Math.random() * .07 + .02);
       });
 
-      // Reset if both players are critically low
-      if (Object.values(players).every(p => p.hp < 0.1)) {
-        Object.values(players).forEach(p => p.hp = Math.random() * 0.4 + 0.6);
+      if (Object.values(p).every(hp => hp < .1)) {
+        Object.keys(p).forEach(k => p[k] = Math.random() * .4 + .6);
       }
 
-      updateHpBars();
+      update();
     }, 2500);
 
-    updateHpBars();
+    update();
   </script>
 </body>
 </html>
