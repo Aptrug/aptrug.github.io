@@ -42,7 +42,13 @@
     }
 
     /* HP container styling */
-    .hp-bar-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .hp-bar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
     .hp-container {
       position: relative;
       width: 400px; height: 80px;
@@ -52,27 +58,47 @@
       margin: 60px 0;
     }
 
-    /* Falchion shapes and their specific fills */
-    .enemy-bar { clip-path: polygon(0 35%, 65% 35%, 75% 45%, 82% 60%, 88% 75%, 92% 85%, 96% 92%, 100% 95%, 98% 80%, 94% 65%, 88% 50%, 82% 35%, 75% 25%, 65% 18%, 0 18%); }
-    .hero-bar  { clip-path: polygon(100% 65%, 35% 65%, 25% 55%, 18% 40%, 12% 25%, 8% 15%, 4% 8%, 0% 5%, 2% 20%, 6% 35%, 12% 50%, 18% 65%, 25% 75%, 35% 82%, 100% 82%); }
+    /* Falchion shapes */
+    .enemy .hp-container { clip-path: polygon(0 35%, 65% 35%, 75% 45%, 82% 60%, 88% 75%, 92% 85%, 96% 92%, 100% 95%, 98% 80%, 94% 65%, 88% 50%, 82% 35%, 75% 25%, 65% 18%, 0 18%); }
+    .hero .hp-container  { clip-path: polygon(100% 65%, 35% 65%, 25% 55%, 18% 40%, 12% 25%, 8% 15%, 4% 8%, 0% 5%, 2% 20%, 6% 35%, 12% 50%, 18% 65%, 25% 75%, 35% 82%, 100% 82%); }
 
-    .enemy-bar .hp-fill { left: 0; background: linear-gradient(90deg, #cc0000 0%, #ff4444 50%, #ff6666 100%); }
-    .hero-bar .hp-fill  { right: 0; background: linear-gradient(90deg, #003399 0%, #4499ff 50%, #66aaff 100%); }
-
-    /* Shared HP fill */
+    /* HP fill */
     .hp-fill {
-      position: absolute; top: 0; height: 100%;
+      position: absolute;
+      top: 0;
+      height: 100%;
       transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       overflow: hidden;
     }
 
+    .enemy .hp-fill {
+      left: 0;
+      background: linear-gradient(90deg, #cc0000 0%, #ff4444 50%, #ff6666 100%);
+    }
+
+    .hero .hp-fill  {
+      right: 0;
+      background: linear-gradient(90deg, #003399 0%, #4499ff 50%, #66aaff 100%);
+    }
+
     /* Wave effect */
     .wave {
-      position: absolute; top: 0; width: 180px; height: 100%;
+      position: absolute;
+      top: 0;
+      width: 180px;
+      height: 100%;
       background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 15%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.3) 70%, rgba(255,255,255,0.1) 85%, rgba(255,255,255,0) 100%);
-      opacity: 0; border-radius: 4px; mix-blend-mode: screen; pointer-events: none;
-      animation: var(--wave-anim) var(--wave-duration, 3s) ease-in-out infinite;
+      opacity: 0;
+      border-radius: 4px;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      animation-duration: var(--wave-duration, 3s);
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
     }
+
+    .enemy .wave { animation-name: wave-right-to-left; }
+    .hero .wave  { animation-name: wave-left-to-right; }
 
     @keyframes wave-right-to-left { 0% { right: -180px; opacity: 0; } 10%,90% {opacity:1;} 100% { right: 400px; opacity: 0; } }
     @keyframes wave-left-to-right  { 0% { left: -180px;  opacity: 0; } 10%,90% {opacity:1;} 100% { left: 400px; opacity: 0; } }
@@ -81,8 +107,10 @@
     .hp-value {
       position: absolute;
       font: bold 18px 'Segoe UI', sans-serif;
-      width: 60px; text-align: center;
-      padding: 4px 12px; border-radius: 12px;
+      width: 60px;
+      text-align: center;
+      padding: 4px 12px;
+      border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.2);
       background: rgba(0,0,0,0.3);
       color: #fff;
@@ -91,8 +119,19 @@
       letter-spacing: 1px;
     }
 
-    .enemy-bar-container .hp-value { bottom: 160px; left: 0; color: #ff6666; text-shadow: 0 0 8px #ff6666; }
-    .hero-bar-container .hp-value  { top: 160px; right: 0; color: #66aaff; text-shadow: 0 0 8px #66aaff; }
+    .enemy .hp-value {
+      bottom: 160px;
+      left: 0;
+      color: #ff6666;
+      text-shadow: 0 0 8px #ff6666;
+    }
+
+    .hero .hp-value  {
+      top: 160px;
+      right: 0;
+      color: #66aaff;
+      text-shadow: 0 0 8px #66aaff;
+    }
 
     /* Health state animations */
     .low-hp       { animation: lowHpPulse 1.5s ease-in-out infinite alternate; }
@@ -109,10 +148,10 @@
 <body>
   <div class="battle-ui">
     <!-- Enemy HP -->
-    <div class="hp-bar-container enemy-bar-container">
-      <div class="hp-value" data-player="enemy">75%</div>
-      <div class="hp-container enemy-bar">
-        <div class="hp-fill" data-player="enemy" style="--wave-anim:wave-right-to-left">
+    <div class="hp-bar-container enemy">
+      <div class="hp-value">75%</div>
+      <div class="hp-container">
+        <div class="hp-fill">
           <div class="wave"></div>
         </div>
       </div>
@@ -121,55 +160,67 @@
     <div class="vs-circle">VS</div>
 
     <!-- Hero HP -->
-    <div class="hp-bar-container hero-bar-container">
-      <div class="hp-container hero-bar">
-        <div class="hp-fill" data-player="hero" style="--wave-anim:wave-left-to-right">
+    <div class="hp-bar-container hero">
+      <div class="hp-container">
+        <div class="hp-fill">
           <div class="wave"></div>
         </div>
       </div>
-      <div class="hp-value" data-player="hero">50%</div>
+      <div class="hp-value">50%</div>
     </div>
   </div>
 
   <script>
     const players = {
-      enemy: { hp: 0.75 },
-      hero: { hp: 0.50 }
+      enemy: { hp: 0.75, element: null },
+      hero: { hp: 0.50, element: null }
     };
 
+    // Cache DOM elements
+    Object.keys(players).forEach(type => {
+      const container = document.querySelector(`.${type}`);
+      players[type].element = {
+        bar: container.querySelector('.hp-fill'),
+        value: container.querySelector('.hp-value')
+      };
+    });
+
     function updateHpBars() {
-      Object.keys(players).forEach(playerType => {
-        const player = players[playerType];
-        const bar = document.querySelector(`[data-player="${playerType}"].hp-fill`);
-        const val = document.querySelector(`[data-player="${playerType}"].hp-value`);
+      Object.entries(players).forEach(([type, player]) => {
+        const { bar, value } = player.element;
+        const hpPercent = player.hp * 100;
 
         // Update HP display
-        bar.style.width = (player.hp * 100) + "%";
-        val.textContent = Math.round(player.hp * 100) + "%";
+        bar.style.width = hpPercent + "%";
+        value.textContent = Math.round(hpPercent) + "%";
         bar.style.setProperty('--wave-duration', Math.max(0.4, 3 * player.hp) + "s");
 
-        // Clear existing health state classes
-        bar.className = bar.className.replace(/(low|critical)-hp/g, '').trim();
-        val.className = val.className.replace(/(low|critical)-hp-text/g, '').trim();
+        // Clear and apply health state classes
+        const healthClasses = ['low-hp', 'critical-hp'];
+        const textClasses = ['low-hp-text', 'critical-hp-text'];
 
-        // Apply health state classes
+        bar.classList.remove(...healthClasses);
+        value.classList.remove(...textClasses);
+
         if (player.hp <= 0.15) {
           bar.classList.add('critical-hp');
-          val.classList.add('critical-hp-text');
+          value.classList.add('critical-hp-text');
         } else if (player.hp <= 0.3) {
           bar.classList.add('low-hp');
-          val.classList.add('low-hp-text');
+          value.classList.add('low-hp-text');
         }
       });
     }
 
     setInterval(() => {
+      // Random HP damage
       Object.values(players).forEach(player => {
         if (Math.random() > 0.5 && player.hp > 0) {
           player.hp = Math.max(0, player.hp - (Math.random() * 0.05 + 0.02));
         }
       });
 
+      // Reset if both players are critically low
       if (Object.values(players).every(p => p.hp < 0.1)) {
         Object.values(players).forEach(p => p.hp = Math.random() * 0.4 + 0.6);
       }
@@ -181,5 +232,3 @@
   </script>
 </body>
 </html>
-
-The code works, but I want you to optimize/simplify the code. Nothing I hate more than reinventing the wheel and duplicated efforts. Don't break features though.
