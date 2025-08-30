@@ -41,7 +41,7 @@
       100% { box-shadow: 0 0 30px rgba(255,204,0,1),   0 8px 25px rgba(0,0,0,.7), inset 0 0 25px rgba(255,255,255,0.5); }
     }
 
-    /* HP container styling */
+    /* Shared HP container styling */
     .hp-bar-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .hp-container {
       position: relative;
@@ -52,32 +52,35 @@
       margin: 60px 0;
     }
 
-    /* Falchion shapes and their specific fills */
+    /* Falchion shapes */
     .enemy-bar { clip-path: polygon(0 35%, 65% 35%, 75% 45%, 82% 60%, 88% 75%, 92% 85%, 96% 92%, 100% 95%, 98% 80%, 94% 65%, 88% 50%, 82% 35%, 75% 25%, 65% 18%, 0 18%); }
     .hero-bar  { clip-path: polygon(100% 65%, 35% 65%, 25% 55%, 18% 40%, 12% 25%, 8% 15%, 4% 8%, 0% 5%, 2% 20%, 6% 35%, 12% 50%, 18% 65%, 25% 75%, 35% 82%, 100% 82%); }
 
-    .enemy-bar .hp-fill { left: 0; background: linear-gradient(90deg, #cc0000 0%, #ff4444 50%, #ff6666 100%); }
-    .hero-bar .hp-fill  { right: 0; background: linear-gradient(90deg, #003399 0%, #4499ff 50%, #66aaff 100%); }
-
-    /* Shared HP fill */
+    /* HP fill */
     .hp-fill {
       position: absolute; top: 0; height: 100%;
       transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       overflow: hidden;
     }
+    .hilt-left  { left: 0; }
+    .hilt-right { right: 0; }
+
+    /* Fill colors */
+    .enemy-fill { background: linear-gradient(90deg, #cc0000 0%, #ff4444 50%, #ff6666 100%); }
+    .hero-fill  { background: linear-gradient(90deg, #003399 0%, #4499ff 50%, #66aaff 100%); }
 
     /* Wave effect */
     .wave {
       position: absolute; top: 0; width: 180px; height: 100%;
       background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 15%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.3) 70%, rgba(255,255,255,0.1) 85%, rgba(255,255,255,0) 100%);
       opacity: 0; border-radius: 4px; mix-blend-mode: screen; pointer-events: none;
-      animation: var(--wave-anim) var(--wave-duration, 3s) ease-in-out infinite;
+      animation: var(--wave-dir) var(--wave-duration, 3s) ease-in-out infinite;
     }
 
     @keyframes wave-right-to-left { 0% { right: -180px; opacity: 0; } 10%,90% {opacity:1;} 100% { right: 400px; opacity: 0; } }
     @keyframes wave-left-to-right  { 0% { left: -180px;  opacity: 0; } 10%,90% {opacity:1;} 100% { left: 400px; opacity: 0; } }
 
-    /* HP text positioning and styling */
+    /* HP text */
     .hp-value {
       position: absolute;
       font: bold 18px 'Segoe UI', sans-serif;
@@ -90,11 +93,11 @@
       backdrop-filter: blur(4px);
       letter-spacing: 1px;
     }
+    /* 160px so that the percentage show just (1mm) above/below the hilt */
+    .enemy-value { bottom: 160px; left: 0;   color: #ff6666; text-shadow: 0 0 8px #ff6666; }
+    .hero-value  { top: 160px;    right: 0;  color: #66aaff; text-shadow: 0 0 8px #66aaff; }
 
-    .enemy-bar-container .hp-value { bottom: 160px; left: 0; color: #ff6666; text-shadow: 0 0 8px #ff6666; }
-    .hero-bar-container .hp-value  { top: 160px; right: 0; color: #66aaff; text-shadow: 0 0 8px #66aaff; }
-
-    /* Health state animations */
+    /* Low/critical HP animations */
     .low-hp       { animation: lowHpPulse 1.5s ease-in-out infinite alternate; }
     .critical-hp  { animation: criticalFlash 0.6s ease-in-out infinite alternate; }
     .low-hp-text  { animation: lowHpTextPulse 1.2s ease-in-out infinite alternate; }
@@ -104,16 +107,17 @@
     @keyframes criticalFlash     { 0% {opacity:0.8;} 100% {opacity:1; filter: drop-shadow(0 0 15px currentColor);} }
     @keyframes lowHpTextPulse    { 0% {transform:scale(1);} 100% {transform:scale(1.05); text-shadow:0 0 15px currentColor;} }
     @keyframes criticalHpTextFlash {0%{transform:scale(1);opacity:.9;}100%{transform:scale(1.1);opacity:1;text-shadow:0 0 20px currentColor;}}
+
   </style>
 </head>
 <body>
   <div class="battle-ui">
     <!-- Enemy HP -->
-    <div class="hp-bar-container enemy-bar-container">
-      <div class="hp-value" data-player="enemy">75%</div>
+    <div class="hp-bar-container">
+      <div class="hp-value enemy-value" id="enemy-value">75%</div>
       <div class="hp-container enemy-bar">
-        <div class="hp-fill" data-player="enemy" style="--wave-anim:wave-right-to-left">
-          <div class="wave"></div>
+        <div class="hp-fill enemy-fill hilt-left" id="enemy-hp">
+          <div class="wave" style="--wave-dir:wave-right-to-left"></div>
         </div>
       </div>
     </div>
@@ -121,59 +125,42 @@
     <div class="vs-circle">VS</div>
 
     <!-- Hero HP -->
-    <div class="hp-bar-container hero-bar-container">
+    <div class="hp-bar-container">
       <div class="hp-container hero-bar">
-        <div class="hp-fill" data-player="hero" style="--wave-anim:wave-left-to-right">
-          <div class="wave"></div>
+        <div class="hp-fill hero-fill hilt-right" id="hero-hp">
+          <div class="wave" style="--wave-dir:wave-left-to-right"></div>
         </div>
       </div>
-      <div class="hp-value" data-player="hero">50%</div>
+      <div class="hp-value hero-value" id="hero-value">50%</div>
     </div>
   </div>
 
   <script>
-    const players = {
-      enemy: { hp: 0.75 },
-      hero: { hp: 0.50 }
-    };
+    const players = [
+      { hp: 0.75, el: 'enemy-hp', valEl: 'enemy-value' },
+      { hp: 0.50, el: 'hero-hp',  valEl: 'hero-value'  }
+    ];
 
     function updateHpBars() {
-      Object.keys(players).forEach(playerType => {
-        const player = players[playerType];
-        const bar = document.querySelector(`[data-player="${playerType}"].hp-fill`);
-        const val = document.querySelector(`[data-player="${playerType}"].hp-value`);
+      players.forEach(p => {
+        const bar = document.getElementById(p.el);
+        const val = document.getElementById(p.valEl);
 
-        // Update HP display
-        bar.style.width = (player.hp * 100) + "%";
-        val.textContent = Math.round(player.hp * 100) + "%";
-        bar.style.setProperty('--wave-duration', Math.max(0.4, 3 * player.hp) + "s");
+        bar.style.width = (p.hp * 100) + "%";
+        val.textContent = Math.round(p.hp * 100) + "%";
+        bar.style.setProperty('--wave-duration', Math.max(0.4, 3 * p.hp) + "s");
 
-        // Clear existing health state classes
-        bar.className = bar.className.replace(/(low|critical)-hp/g, '').trim();
-        val.className = val.className.replace(/(low|critical)-hp-text/g, '').trim();
+        bar.className = `hp-fill ${bar.classList.contains('enemy-fill') ? 'enemy-fill hilt-left':'hero-fill hilt-right'}`;
+        val.className = `hp-value ${val.classList.contains('enemy-value') ? 'enemy-value':'hero-value'}`;
 
-        // Apply health state classes
-        if (player.hp <= 0.15) {
-          bar.classList.add('critical-hp');
-          val.classList.add('critical-hp-text');
-        } else if (player.hp <= 0.3) {
-          bar.classList.add('low-hp');
-          val.classList.add('low-hp-text');
-        }
+        if (p.hp <= 0.15) { bar.classList.add('critical-hp'); val.classList.add('critical-hp-text'); }
+        else if (p.hp <= 0.3) { bar.classList.add('low-hp'); val.classList.add('low-hp-text'); }
       });
     }
 
     setInterval(() => {
-      Object.values(players).forEach(player => {
-        if (Math.random() > 0.5 && player.hp > 0) {
-          player.hp = Math.max(0, player.hp - (Math.random() * 0.05 + 0.02));
-        }
-      });
-
-      if (Object.values(players).every(p => p.hp < 0.1)) {
-        Object.values(players).forEach(p => p.hp = Math.random() * 0.4 + 0.6);
-      }
-
+      players.forEach(p => { if (Math.random() > 0.5 && p.hp > 0) p.hp = Math.max(0, p.hp - (Math.random() * 0.05 + 0.02)); });
+      if (players.every(p => p.hp < 0.1)) players.forEach(p => p.hp = Math.random() * 0.4 + 0.6);
       updateHpBars();
     }, 2500);
 
@@ -181,3 +168,5 @@
   </script>
 </body>
 </html>
+
+The code works, but I want you to optimize/simplify the code. Nothing I hate more than reinventing the wheel and duplicated efforts. Don't break features though
