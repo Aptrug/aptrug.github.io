@@ -1,764 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Falchion HP Bars</title>
+  <meta charset="UTF-8">
+  <title>Berserk-Style Battle</title>
   <style>
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      background: radial-gradient(circle, #0a0a0a 0%, #000 100%);
-      font-family: 'Segoe UI', sans-serif;
-      overflow: hidden;
-    }
-
-    .battle-ui {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      position: relative;
-      z-index: 10;
-      padding: 80px 0;
-    }
-
-    /* VS Circle */
-    .vs-circle {
-      width: 80px; height: 80px;
-      display: flex; justify-content: center; align-items: center;
-      font: 900 18px/1 'Segoe UI', sans-serif;
-      letter-spacing: 2px;
-      color: #000; border-radius: 50%; border: 4px solid #fff;
-      background: linear-gradient(45deg, #ffcc00 0%, #ff9900 50%, #ffcc00 100%);
-      box-shadow: 0 0 20px rgba(255,204,0,0.8), 0 8px 25px rgba(0,0,0,.7), inset 0 0 15px rgba(255,255,255,0.3);
-      animation: vsGlow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes vsGlow {
-      0%   { box-shadow: 0 0 20px rgba(255,204,0,0.8), 0 8px 25px rgba(0,0,0,.7), inset 0 0 15px rgba(255,255,255,0.3); }
-      100% { box-shadow: 0 0 30px rgba(255,204,0,1),   0 8px 25px rgba(0,0,0,.7), inset 0 0 25px rgba(255,255,255,0.5); }
-    }
-
-    /* HP container styling */
-    .hp-bar-container {
+      font-family: "Trebuchet MS", sans-serif;
+      background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+      color: #eee;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      justify-content: flex-start;
+      height: 100vh;
+      padding: 20px;
     }
 
-    .hp-container {
+    h1 {
+      margin: 10px;
+      color: #ff4444;
+    }
+
+    .battlefield {
+      display: flex;
+      justify-content: space-between;
+      width: 80%;
+      margin: 20px auto;
       position: relative;
-      width: 400px; height: 80px;
-      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-      border: 2px solid rgba(255,255,255,.15);
-      box-shadow: inset 0 0 20px rgba(0,0,0,.8), 0 4px 15px rgba(0,0,0,.6);
-      margin: 60px 0;
     }
 
-    /* Falchion shapes */
-    .enemy .hp-container { clip-path: polygon(0 35%, 65% 35%, 75% 45%, 82% 60%, 88% 75%, 92% 85%, 96% 92%, 100% 95%, 98% 80%, 94% 65%, 88% 50%, 82% 35%, 75% 25%, 65% 18%, 0 18%); }
-    .hero .hp-container  { clip-path: polygon(100% 65%, 35% 65%, 25% 55%, 18% 40%, 12% 25%, 8% 15%, 4% 8%, 0% 5%, 2% 20%, 6% 35%, 12% 50%, 18% 65%, 25% 75%, 35% 82%, 100% 82%); }
-
-    /* HP fill */
-    .hp-fill {
-      position: absolute;
-      top: 0;
-      height: 100%;
-      transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      overflow: hidden;
-    }
-
-    .enemy .hp-fill {
-      left: 0;
-      background: linear-gradient(90deg, #cc0000 0%, #ff4444 50%, #ff6666 100%);
-    }
-
-    .hero .hp-fill  {
-      right: 0;
-      background: linear-gradient(90deg, #003399 0%, #4499ff 50%, #66aaff 100%);
-    }
-
-    /* Wave effect */
-    .wave {
-      position: absolute;
-      top: 0;
-      width: 180px;
-      height: 100%;
-      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 15%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.9) 50%, rgba(255,255,255,0.7) 55%, rgba(255,255,255,0.3) 70%, rgba(255,255,255,0.1) 85%, rgba(255,255,255,0) 100%);
-      opacity: 0;
-      border-radius: 4px;
-      mix-blend-mode: screen;
-      pointer-events: none;
-      animation-duration: var(--wave-duration, 3s);
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-    }
-
-    .enemy .wave { animation-name: wave-right-to-left; }
-    .hero .wave  { animation-name: wave-left-to-right; }
-
-    @keyframes wave-right-to-left { 0% { right: -180px; opacity: 0; } 10%,90% {opacity:1;} 100% { right: 400px; opacity: 0; } }
-    @keyframes wave-left-to-right  { 0% { left: -180px;  opacity: 0; } 10%,90% {opacity:1;} 100% { left: 400px; opacity: 0; } }
-
-    /* HP text positioning and styling */
-    .hp-value {
-      position: absolute;
-      font: bold 18px 'Segoe UI', sans-serif;
-      width: 60px;
+    .fighter {
+      width: 40%;
       text-align: center;
-      padding: 4px 12px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.3);
-      color: #fff;
-      text-shadow: 0 0 8px rgba(0,0,0,0.9);
-      backdrop-filter: blur(4px);
-      letter-spacing: 1px;
     }
 
-    .enemy .hp-value {
-      bottom: 160px;
-      left: 0;
-      color: #ff6666;
-      text-shadow: 0 0 8px #ff6666;
+    .hpbar {
+      background: #333;
+      border: 2px solid #666;
+      border-radius: 10px;
+      width: 100%;
+      height: 25px;
+      margin: 10px 0;
+      overflow: hidden;
+      position: relative;
     }
 
-    .hero .hp-value  {
-      top: 160px;
-      right: 0;
-      color: #66aaff;
-      text-shadow: 0 0 8px #66aaff;
+    .hpfill {
+      background: linear-gradient(90deg, #d00, #f55);
+      height: 100%;
+      width: 100%;
+      transition: width 0.4s ease;
     }
 
-    /* Health state animations */
-    .low-hp       { animation: lowHpPulse 1.5s ease-in-out infinite alternate; }
-    .critical-hp  { animation: criticalFlash 0.6s ease-in-out infinite alternate; }
-    .low-hp-text  { animation: lowHpTextPulse 1.2s ease-in-out infinite alternate; }
-    .critical-hp-text { animation: criticalHpTextFlash 0.8s ease-in-out infinite alternate; }
+    .stats {
+      margin: 5px;
+      font-size: 14px;
+    }
 
-    @keyframes lowHpPulse        { 0% { filter: brightness(1);} 100% {filter: brightness(1.4) drop-shadow(0 0 10px currentColor);} }
-    @keyframes criticalFlash     { 0% {opacity:0.8;} 100% {opacity:1; filter: drop-shadow(0 0 15px currentColor);} }
-    @keyframes lowHpTextPulse    { 0% {transform:scale(1);} 100% {transform:scale(1.05); text-shadow:0 0 15px currentColor;} }
-    @keyframes criticalHpTextFlash {0%{transform:scale(1);opacity:.9;}100%{transform:scale(1.1);opacity:1;text-shadow:0 0 20px currentColor;}}
+    .controls {
+      margin: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      background: #222;
+      color: #eee;
+      border: 2px solid #666;
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    #log {
+      background: #111;
+      border: 2px solid #555;
+      border-radius: 10px;
+      padding: 10px;
+      width: 80%;
+      height: 200px;
+      overflow-y: auto;
+      font-size: 14px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <div class="battle-ui">
-    <!-- Enemy HP -->
-    <div class="hp-bar-container enemy">
-      <div class="hp-value">75%</div>
-      <div class="hp-container">
-        <div class="hp-fill">
-          <div class="wave"></div>
-        </div>
-      </div>
+  <h1>⚔️ Battle System Demo ⚔️</h1>
+
+  <div class="battlefield">
+    <div class="fighter" id="player">
+      <h2>Hero</h2>
+      <div class="hpbar"><div class="hpfill" id="player-hp"></div></div>
+      <div class="stats">HP: <span id="player-hp-text">100</span></div>
+      <div class="stats">AP: <span id="player-ap-text">3</span></div>
     </div>
 
-    <div class="vs-circle">VS</div>
-
-    <!-- Hero HP -->
-    <div class="hp-bar-container hero">
-      <div class="hp-container">
-        <div class="hp-fill">
-          <div class="wave"></div>
-        </div>
-      </div>
-      <div class="hp-value">50%</div>
+    <div class="fighter" id="enemy">
+      <h2>Monster</h2>
+      <div class="hpbar"><div class="hpfill" id="enemy-hp"></div></div>
+      <div class="stats">HP: <span id="enemy-hp-text">120</span></div>
     </div>
   </div>
 
+  <div class="controls">
+    <button onclick="playerAction('light')">Light Attack (AP 1)</button>
+    <button onclick="playerAction('heavy')">Heavy Attack (AP 2)</button>
+    <button onclick="playerAction('defend')">Defend (AP 1)</button>
+    <button onclick="endTurn()">End Turn</button>
+  </div>
+
+  <div id="log"></div>
+
   <script>
-    const players = {
-      enemy: { hp: 0.75, element: null },
-      hero: { hp: 0.50, element: null }
-    };
+    let playerHP = 100;
+    let enemyHP = 120;
+    let playerAP = 3;
+    const maxAP = 3;
+    let defending = false;
+    let roundCount = 1;
 
-    // Cache DOM elements
-    Object.keys(players).forEach(type => {
-      const container = document.querySelector(`.${type}`);
-      players[type].element = {
-        bar: container.querySelector('.hp-fill'),
-        value: container.querySelector('.hp-value')
-      };
-    });
+    const playerHpBar = document.getElementById("player-hp");
+    const enemyHpBar = document.getElementById("enemy-hp");
+    const playerHpText = document.getElementById("player-hp-text");
+    const enemyHpText = document.getElementById("enemy-hp-text");
+    const playerApText = document.getElementById("player-ap-text");
+    const log = document.getElementById("log");
 
-    function updateHpBars() {
-      Object.entries(players).forEach(([type, player]) => {
-        const { bar, value } = player.element;
-        const hpPercent = player.hp * 100;
-
-        // Update HP display
-        bar.style.width = hpPercent + "%";
-        value.textContent = Math.round(hpPercent) + "%";
-        bar.style.setProperty('--wave-duration', Math.max(0.4, 3 * player.hp) + "s");
-
-        // Clear and apply health state classes
-        const healthClasses = ['low-hp', 'critical-hp'];
-        const textClasses = ['low-hp-text', 'critical-hp-text'];
-
-        bar.classList.remove(...healthClasses);
-        value.classList.remove(...textClasses);
-
-        if (player.hp <= 0.15) {
-          bar.classList.add('critical-hp');
-          value.classList.add('critical-hp-text');
-        } else if (player.hp <= 0.3) {
-          bar.classList.add('low-hp');
-          value.classList.add('low-hp-text');
-        }
-      });
+    function logMessage(msg) {
+      log.innerHTML += msg + "<br>";
+      log.scrollTop = log.scrollHeight;
     }
 
-    setInterval(() => {
-      // Random HP damage
-      Object.values(players).forEach(player => {
-        if (Math.random() > 0.5 && player.hp > 0) {
-          player.hp = Math.max(0, player.hp - (Math.random() * 0.05 + 0.02));
+    function updateUI() {
+      playerHpBar.style.width = (playerHP/100*100) + "%";
+      enemyHpBar.style.width = (enemyHP/120*100) + "%";
+      playerHpText.textContent = playerHP;
+      enemyHpText.textContent = enemyHP;
+      playerApText.textContent = playerAP;
+    }
+
+    function attack(attacker, target, dmgRange, apCost=0) {
+      let dmg = Math.floor(Math.random()*(dmgRange[1]-dmgRange[0]+1))+dmgRange[0];
+      if (target === "enemy") {
+        enemyHP = Math.max(0, enemyHP - dmg);
+        logMessage(`💥 You hit the monster for <b>${dmg}</b> damage!`);
+      } else {
+        if (defending) {
+          dmg = Math.floor(dmg/2);
+          logMessage(`🛡 You defend and reduce damage to <b>${dmg}</b>!`);
+          defending = false;
+        } else {
+          logMessage(`👹 Monster hits you for <b>${dmg}</b>!`);
         }
-      });
-
-      // Reset if both players are critically low
-      if (Object.values(players).every(p => p.hp < 0.1)) {
-        Object.values(players).forEach(p => p.hp = Math.random() * 0.4 + 0.6);
+        playerHP = Math.max(0, playerHP - dmg);
       }
+      if (attacker === "player") playerAP -= apCost;
+      updateUI();
+    }
 
-      updateHpBars();
-    }, 2500);
+    function playerAction(action) {
+      if (playerAP <= 0) {
+        logMessage("⚠️ Not enough AP!");
+        return;
+      }
+      if (action === "light") {
+        attack("player", "enemy", [10,15], 1);
+      } else if (action === "heavy") {
+        attack("player", "enemy", [20,35], 2);
+      } else if (action === "defend") {
+        defending = true;
+        playerAP -= 1;
+        logMessage("🛡 You brace yourself for the next attack.");
+      }
+      checkEnd();
+    }
 
-    updateHpBars();
+    function endTurn() {
+      logMessage(`<hr>--- Enemy's Turn (Round ${roundCount}) ---`);
+      enemyTurn();
+      playerAP = maxAP;
+      roundCount++;
+      updateUI();
+      checkEnd();
+    }
+
+    function enemyTurn() {
+      if (enemyHP <= 0) return;
+      let choice = Math.random() < 0.5 ? "light" : "heavy";
+      if (choice === "light") {
+        attack("enemy", "player", [8,12]);
+      } else {
+        attack("enemy", "player", [15,25]);
+      }
+    }
+
+    function checkEnd() {
+      if (enemyHP <= 0) {
+        logMessage("<b>🏆 You defeated the monster!</b>");
+        disableButtons();
+      } else if (playerHP <= 0) {
+        logMessage("<b>☠️ You were slain...</b>");
+        disableButtons();
+      }
+    }
+
+    function disableButtons() {
+      document.querySelectorAll("button").forEach(btn => btn.disabled = true);
+    }
+
+    updateUI();
+    logMessage("🔥 Battle begins!");
   </script>
 </body>
 </html>
-
-This code above is perfect, it has everything I want.
-
-But I want to integrate the stuff above in my renpy game UI (that is still incomplete)
-But instead of "VS" circle, it should be the Rounds circle instead, surrounded by HP bars left and right (like attached image)
-Also, ditch the Falchion shape (too complex), just a line instead for HP bars (AKA rectangle)
-Do thorough research on Renpy & Python ATL on don't bother answering at all
-
-# ========================
-# Game Variables
-# ========================
-default current_round = 59
-default max_ap = 9
-default available_ap = 3
-
-define ROUND_RADIUS = 70
-define ORB_RADIUS = 15
-
-# ========================
-# ATL Transforms
-# ========================
-transform orb_glow:
-    parallel:
-        ease 1.0 alpha 0.8
-        ease 1.0 alpha 1.0
-    parallel:
-        linear 0.1 additive 0.3
-        linear 0.1 additive 0.0
-    repeat
-
-transform round_breathe:
-    ease 3.0 zoom 1.05
-    ease 3.0 zoom 1.0
-    repeat
-
-transform orb_inactive:
-    alpha 0.4
-    zoom 0.9
-
-# ========================
-# Python Helpers
-# ========================
-init python:
-    import math
-
-    class Circle(renpy.Displayable):
-        def __init__(self, radius, color, border_color=None, border_width=2, **kwargs):
-            super().__init__(**kwargs)
-            self.radius, self.color = radius, color
-            self.border_color, self.border_width = border_color, border_width
-
-        def render(self, w, h, st, at):
-            size = self.radius * 2
-            r = renpy.Render(size, size)
-            c = r.canvas()
-
-            if self.color:
-                c.circle(self.color, (self.radius, self.radius), self.radius)
-            if self.border_color:
-                c.circle(self.border_color, (self.radius, self.radius), self.radius, self.border_width)
-            return r
-
-    def get_orb_positions(num_orbs):
-        """
-        Returns orb positions arranged evenly in a circle around ROUND_RADIUS.
-        Offsets by ORB_RADIUS so they align properly.
-        """
-        positions = []
-        for i in range(num_orbs):
-            angle = 2 * math.pi * i / num_orbs - math.pi/2
-            x = ROUND_RADIUS * (1 + math.cos(angle)) - ORB_RADIUS
-            y = ROUND_RADIUS * (1 + math.sin(angle)) - ORB_RADIUS
-            positions.append((int(x), int(y)))
-        return positions
-
-# ========================
-# Circle Definitions
-# ========================
-define round_bg = Circle(ROUND_RADIUS, (80, 80, 80), (50, 50, 50), 3)
-define orb_active = Circle(ORB_RADIUS, (255, 215, 0), (184, 134, 11), 2)
-define orb_inactive_img = Circle(ORB_RADIUS, (102, 102, 102), (60, 60, 60), 2)
-
-# ========================
-# Main UI Screen
-# ========================
-screen round_ui():
-    fixed:
-        xalign 0.5
-        yalign 0.75
-        xsize ROUND_RADIUS*2
-        ysize ROUND_RADIUS*2
-
-        # Round circle background with breathing animation
-        add round_bg at round_breathe
-
-        # Round number in the center
-        vbox:
-            xalign 0.5
-            yalign 0.5
-            spacing 2
-
-            text "Round":
-                size 22
-                color "#FFFFFF"
-                xalign 0.5
-                outlines [(2, "#000000", 0, 0)]
-
-            text "[current_round]":
-                size 56
-                color "#FFFFFF"
-                xalign 0.5
-                outlines [(2, "#000000", 0, 0)]
-
-        # Orbs arranged around the circle
-        for i, (x, y) in enumerate(get_orb_positions(max_ap)):
-            add (orb_active if i < available_ap else orb_inactive_img) at (orb_glow if i < available_ap else orb_inactive) xpos x ypos y
-
-# ========================
-# Demo Label
-# ========================
-label start:
-    show screen round_ui
-
-    "Round UI Demo: Round [current_round], AP [available_ap]/[max_ap]"
-
-    menu:
-        "Spend AP" if available_ap > 0:
-            $ available_ap -= 1
-            jump start
-
-        "Gain AP" if available_ap < max_ap:
-            $ available_ap += 1
-            jump start
-
-        "Next Round":
-            $ current_round += 1
-            $ available_ap = max_ap
-            jump start
-
-        "Exit":
-            return
-
-This the code that was generated by an AI chatbot. It has many flaws (wrong shapes etc), but you might find something useful in it
-# ========================
-# Game Variables
-# ========================
-default current_round = 18
-default max_ap = 6
-default available_ap = 4
-
-# HP Variables
-default enemy_hp = 0.75
-default enemy_max_hp = 1.0
-default hero_hp = 0.50
-default hero_max_hp = 1.0
-
-define ROUND_RADIUS = 70
-define ORB_RADIUS = 15
-
-# HP Bar Constants
-define HP_BAR_WIDTH = 400
-define HP_BAR_HEIGHT = 80
-
-# ========================
-# ATL Transforms
-# ========================
-transform orb_glow:
-    parallel:
-        ease 1.0 alpha 0.8
-        ease 1.0 alpha 1.0
-    parallel:
-        linear 0.1 additive 0.3
-        linear 0.1 additive 0.0
-    repeat
-
-transform round_breathe:
-    ease 3.0 zoom 1.05
-    ease 3.0 zoom 1.0
-    repeat
-
-transform orb_inactive:
-    alpha 0.4
-    zoom 0.9
-
-transform hp_wave_enemy:
-    xpos -180
-    alpha 0.0
-    linear 3.0 xpos HP_BAR_WIDTH alpha 0.6
-    alpha 0.0
-    repeat
-
-transform hp_wave_hero:
-    xpos HP_BAR_WIDTH + 180
-    alpha 0.0
-    linear 3.0 xpos -180 alpha 0.6
-    alpha 0.0
-    repeat
-
-transform low_hp_pulse:
-    ease 1.5 alpha 0.7
-    ease 1.5 alpha 1.0
-    repeat
-
-transform critical_hp_flash:
-    ease 0.6 alpha 0.8
-    ease 0.6 alpha 1.0
-    repeat
-
-transform vs_glow:
-    ease 2.0 alpha 0.8
-    ease 2.0 alpha 1.0
-    repeat
-
-# ========================
-# Python Helpers
-# ========================
-init python:
-    import math
-
-    class Circle(renpy.Displayable):
-        def __init__(self, radius, color, border_color=None, border_width=2, **kwargs):
-            super(Circle, self).__init__(**kwargs)
-            self.radius = radius
-            self.color = color
-            self.border_color = border_color
-            self.border_width = border_width
-
-        def render(self, width, height, st, at):
-            size = self.radius * 2
-            r = renpy.Render(size, size)
-            c = r.canvas()
-
-            if self.color:
-                c.circle(self.color, (self.radius, self.radius), self.radius)
-            if self.border_color:
-                c.circle(self.border_color, (self.radius, self.radius), self.radius, self.border_width)
-            return r
-
-    class FalchionShape(renpy.Displayable):
-        def __init__(self, width, height, is_enemy=True, fill_color="#cc0000", **kwargs):
-            super(FalchionShape, self).__init__(**kwargs)
-            self.width = width
-            self.height = height
-            self.is_enemy = is_enemy
-            self.fill_color = fill_color
-
-        def render(self, width, height, st, at):
-            r = renpy.Render(self.width, self.height)
-            c = r.canvas()
-
-            # Create falchion blade shape points
-            if self.is_enemy:
-                # Enemy falchion - curves to the right (blade pointing right)
-                points = [
-                    (0, int(self.height * 0.4)),                    # Left start
-                    (int(self.width * 0.7), int(self.height * 0.4)), # Main body top
-                    (int(self.width * 0.8), int(self.height * 0.45)), # Curve start
-                    (int(self.width * 0.85), int(self.height * 0.5)), # Mid curve
-                    (int(self.width * 0.9), int(self.height * 0.55)), # Tip approach
-                    (int(self.width * 0.95), int(self.height * 0.58)), # Near tip
-                    (int(self.width), int(self.height * 0.5)),        # Sharp tip
-                    (int(self.width * 0.95), int(self.height * 0.42)), # Tip back
-                    (int(self.width * 0.9), int(self.height * 0.45)), # Curve back
-                    (int(self.width * 0.85), int(self.height * 0.5)), # Mid back
-                    (int(self.width * 0.8), int(self.height * 0.55)), # Curve back
-                    (int(self.width * 0.7), int(self.height * 0.6)),  # Main body bottom
-                    (0, int(self.height * 0.6))                      # Left end
-                ]
-            else:
-                # Hero falchion - curves to the left (blade pointing left)
-                points = [
-                    (int(self.width), int(self.height * 0.4)),        # Right start
-                    (int(self.width * 0.3), int(self.height * 0.4)),  # Main body top
-                    (int(self.width * 0.2), int(self.height * 0.45)), # Curve start
-                    (int(self.width * 0.15), int(self.height * 0.5)), # Mid curve
-                    (int(self.width * 0.1), int(self.height * 0.55)), # Tip approach
-                    (int(self.width * 0.05), int(self.height * 0.58)), # Near tip
-                    (0, int(self.height * 0.5)),                      # Sharp tip
-                    (int(self.width * 0.05), int(self.height * 0.42)), # Tip back
-                    (int(self.width * 0.1), int(self.height * 0.45)), # Curve back
-                    (int(self.width * 0.15), int(self.height * 0.5)), # Mid back
-                    (int(self.width * 0.2), int(self.height * 0.55)), # Curve back
-                    (int(self.width * 0.3), int(self.height * 0.6)),  # Main body bottom
-                    (int(self.width), int(self.height * 0.6))         # Right end
-                ]
-
-            # Draw the falchion shape
-            if isinstance(self.fill_color, tuple):
-                c.polygon(self.fill_color, points)
-            else:
-                # Convert hex color to RGB tuple
-                hex_color = self.fill_color.lstrip('#')
-                rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
-                c.polygon(rgb, points)
-
-            # Add border
-            c.polygon((80, 80, 80), points, 2)
-
-            return r
-
-    def get_orb_positions(num_orbs):
-        """Returns orb positions arranged evenly in a circle around ROUND_RADIUS."""
-        positions = []
-        for i in range(num_orbs):
-            angle = 2 * math.pi * i / num_orbs - math.pi/2
-            x = ROUND_RADIUS * (1 + math.cos(angle)) - ORB_RADIUS
-            y = ROUND_RADIUS * (1 + math.sin(angle)) - ORB_RADIUS
-            positions.append((int(x), int(y)))
-        return positions
-
-    def format_hp_percent(hp_value):
-        """Format HP as percentage for display."""
-        return str(int(hp_value * 100)) + "%"
-
-# ========================
-# Circle and Shape Definitions
-# ========================
-define round_bg = Circle(ROUND_RADIUS, (80, 80, 80), (50, 50, 50), 3)
-define orb_active = Circle(ORB_RADIUS, (255, 215, 0), (184, 134, 11), 2)
-define orb_inactive_img = Circle(ORB_RADIUS, (102, 102, 102), (60, 60, 60), 2)
-
-# ========================
-# HP Bar Screens
-# ========================
-screen hp_bar_enemy():
-    fixed:
-        xpos 50
-        ypos 150
-        xsize HP_BAR_WIDTH
-        ysize HP_BAR_HEIGHT
-
-        # Background falchion shape
-        add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, True, "#1a1a1a")
-
-        # HP Fill - clipped to current HP
-        fixed:
-            xsize int(HP_BAR_WIDTH * enemy_hp)
-            ysize HP_BAR_HEIGHT
-
-            if enemy_hp <= 0.15:
-                add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, True, "#ff4444") at critical_hp_flash
-            elif enemy_hp <= 0.30:
-                add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, True, "#cc0000") at low_hp_pulse
-            else:
-                add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, True, "#cc0000")
-
-            # Wave effect
-            add Solid("#ffffff", xsize=180, ysize=HP_BAR_HEIGHT) alpha 0.3 at hp_wave_enemy
-
-        # HP Text
-        $ hp_text = format_hp_percent(enemy_hp)
-        text "[hp_text]" color "#ff6666" size 28 outlines [(3, "#000000", 0, 0)]:
-            xpos HP_BAR_WIDTH - 70
-            ypos -50
-
-screen hp_bar_hero():
-    fixed:
-        xpos config.screen_width - HP_BAR_WIDTH - 50
-        ypos 150
-        xsize HP_BAR_WIDTH
-        ysize HP_BAR_HEIGHT
-
-        # Background falchion shape
-        add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, False, "#1a1a1a")
-
-        # HP Fill - right-aligned clipped to current HP
-        fixed:
-            xpos HP_BAR_WIDTH - int(HP_BAR_WIDTH * hero_hp)
-            xsize int(HP_BAR_WIDTH * hero_hp)
-            ysize HP_BAR_HEIGHT
-
-            if hero_hp <= 0.15:
-                add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, False, "#4499ff") at critical_hp_flash
-            elif hero_hp <= 0.30:
-                add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, False, "#003399") at low_hp_pulse
-            else:
-                add FalchionShape(HP_BAR_WIDTH, HP_BAR_HEIGHT, False, "#003399")
-
-            # Wave effect
-            add Solid("#ffffff", xsize=180, ysize=HP_BAR_HEIGHT) alpha 0.3 at hp_wave_hero
-
-        # HP Text
-        $ hp_text = format_hp_percent(hero_hp)
-        text "[hp_text]" color "#66aaff" size 28 outlines [(3, "#000000", 0, 0)]:
-            xpos 70
-            ypos HP_BAR_HEIGHT + 25
-
-# ========================
-# VS Circle
-# ========================
-screen vs_circle():
-    fixed:
-        xalign 0.5
-        yalign 0.35
-        xsize 100
-        ysize 100
-
-        # VS background circle with glow
-        add Circle(40, (255, 204, 0), (184, 134, 11), 4) at vs_glow
-
-        # VS text
-        text "VS" color "#000000" size 24 bold True:
-            xalign 0.5
-            yalign 0.5
-            outlines [(1, "#ffffff", 0, 0)]
-
-# ========================
-# Round Display
-# ========================
-screen round_display():
-    fixed:
-        xalign 0.5
-        yalign 0.6
-        xsize ROUND_RADIUS * 2
-        ysize ROUND_RADIUS * 2
-
-        # Round circle background
-        add round_bg at round_breathe
-
-        # Round text
-        vbox:
-            xalign 0.5
-            yalign 0.5
-            spacing 2
-
-            text "Round":
-                size 18
-                color "#FFFFFF"
-                xalign 0.5
-                outlines [(2, "#000000", 0, 0)]
-
-            text "[current_round]":
-                size 48
-                color "#FFFFFF"
-                xalign 0.5
-                outlines [(2, "#000000", 0, 0)]
-
-        # AP Orbs around the circle
-        for i, (x, y) in enumerate(get_orb_positions(max_ap)):
-            if i < available_ap:
-                add orb_active at orb_glow xpos x ypos y
-            else:
-                add orb_inactive_img at orb_inactive xpos x ypos y
-
-# ========================
-# Main Battle UI Screen
-# ========================
-screen battle_ui():
-    modal False
-
-    use hp_bar_enemy
-    use hp_bar_hero
-    use vs_circle
-    use round_display
-
-# ========================
-# Combat Functions
-# ========================
-init python:
-    def damage_enemy(amount):
-        global enemy_hp
-        enemy_hp = max(0.0, enemy_hp - amount)
-
-    def damage_hero(amount):
-        global hero_hp
-        hero_hp = max(0.0, hero_hp - amount)
-
-    def heal_enemy(amount):
-        global enemy_hp
-        enemy_hp = min(enemy_max_hp, enemy_hp + amount)
-
-    def heal_hero(amount):
-        global hero_hp
-        hero_hp = min(hero_max_hp, hero_hp + amount)
-
-    def next_round():
-        global current_round, available_ap
-        current_round += 1
-        available_ap = max_ap
-
-# ========================
-# Demo Label
-# ========================
-label start:
-    show screen battle_ui
-
-    $ enemy_hp_display = format_hp_percent(enemy_hp)
-    $ hero_hp_display = format_hp_percent(hero_hp)
-
-    "Battle UI Demo: Round [current_round], AP [available_ap]/[max_ap]"
-    "Enemy HP: [enemy_hp_display] | Hero HP: [hero_hp_display]"
-
-    menu:
-        "Attack Enemy" if available_ap > 0:
-            $ available_ap -= 1
-            $ damage_enemy(0.15)
-            "You deal damage to the enemy!"
-            jump start
-
-        "Attack Hero" if available_ap > 0:
-            $ available_ap -= 1
-            $ damage_hero(0.10)
-            "The enemy attacks you!"
-            jump start
-
-        "Heal Enemy":
-            $ heal_enemy(0.10)
-            "Enemy heals slightly."
-            jump start
-
-        "Heal Hero":
-            $ heal_hero(0.10)
-            "You heal slightly."
-            jump start
-
-        "Gain AP" if available_ap < max_ap:
-            $ available_ap += 1
-            jump start
-
-        "Next Round":
-            $ next_round()
-            jump start
-
-        "Reset HP":
-            $ enemy_hp = 0.75
-            $ hero_hp = 0.50
-            jump start
-
-        "Exit":
-            return
