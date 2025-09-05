@@ -1,26 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body { margin: 0; padding: 0; }
-        img { display: block; max-width: 100%; height: auto; }
-    </style>
-</head>
-<body>
-    <script>
-        (async () => {
-            try {
-                const dir = await window.showDirectoryPicker();
-                for await (const [name, file] of dir.entries()) {
-                    if (file.kind === 'file' && name.endsWith('.webp')) {
-                        const img = document.createElement('img');
-                        img.src = URL.createObjectURL(await file.getFile());
-                        document.body.appendChild(img);
-                    }
+<script>
+    fetch('dir0/index.json')
+        .then(res => res.json())
+        .then(files => {
+            files.forEach(file => {
+                if(file.endsWith('.webp')){
+                    const img = document.createElement('img');
+                    img.src = `dir0/${file}`;
+                    document.body.appendChild(img);
                 }
-            } catch (e) {}
-        })();
-    </script>
-</body>
-</html>
+            });
+        });
+</script>
