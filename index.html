@@ -1,13 +1,13 @@
 <script>
-    fetch('dir0/index.json')
-        .then(res => res.json())
-        .then(files => {
-            files.forEach(file => {
-                if(file.endsWith('.webp')){
-                    const img = document.createElement('img');
-                    img.src = `dir0/${file}`;
-                    document.body.appendChild(img);
-                }
-            });
-        });
+	fetch('dir0/index.json')
+		.then(res => res.json())
+		.then(files => {
+			files.forEach(file => {
+				if(file.endsWith('.webp')){
+					const img = document.createElement('img');
+					img.src = `dir0/${file}`;
+					document.body.appendChild(img);
+				}
+			});
+		});
 </script>
